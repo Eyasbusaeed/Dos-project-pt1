@@ -1,0 +1,17 @@
+# .NET Build files
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+.vs/
+
+# Docker files
+*.tar
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
