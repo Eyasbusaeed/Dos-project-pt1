@@ -1,7 +1,6 @@
 using CatalogService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Services.AddControllers();
 builder.Services.AddSingleton<CatalogRepository>();
 builder.Services.AddHttpClient();

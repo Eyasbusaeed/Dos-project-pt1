@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  catalog1:
+    build:
+      context: ./src/CatalogService
+    container_name: catalog1
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - REPLICA=catalog1
+    ports:
+      - "4001:4000"
+    networks:
+      - bazar-net
+
+  catalog2:
+    build:
+      context: ./src/CatalogService
+    container_name: catalog2
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - REPLICA=catalog2
+    ports:
+      - "4002:4000"
+    networks:
+      - bazar-net
+
+  order1:
+    build:
+      context: ./src/OrderService
+    container_name: order1
+    ports:
+      - "3001:3000"
+    networks:
+      - bazar-net
+
+  order2:
+    build:
+      context: ./src/OrderService
+    container_name: order2
+    ports:
+      - "3002:3000"
+    networks:
+      - bazar-net
+
+  frontend:
+    build:
+      context: ./src/FrontendService
+    container_name: frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - catalog1
+      - catalog2
+      - order1
+      - order2
+    networks:
+      - bazar-net
+
+networks:
+  bazar-net:
+    driver: bridge
