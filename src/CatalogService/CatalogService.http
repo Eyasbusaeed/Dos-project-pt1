@@ -1,6 +1,12 @@
-@CatalogService_HostAddress = http://localhost:5105
+@host = http://localhost:4000
 
-GET {{CatalogService_HostAddress}}/weatherforecast/
-Accept: application/json
-
+GET {{host}}/search/distributed%20systems
 ###
+GET {{host}}/info/1
+###
+PUT {{host}}/update/1
+Content-Type: application/json
+
+{ "price": 35, "delta": 5 }
+###
+POST {{host}}/decrement/1

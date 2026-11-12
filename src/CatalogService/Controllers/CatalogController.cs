@@ -3,92 +3,127 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.Controllers;
 
+/// <summary>Body of the update request. All fields optional; at least one must be present.</summary>
+public class UpdateRequest
+{
+    /// <summary>New absolute price.</summary>
+    public decimal? Price { get; set; }
+    /// <summary>New absolute stock quantity.</summary>
+    public int? Quantity { get; set; }
+    /// <summary>Relative stock change (+ increases, - decreases).</summary>
+    public int? Delta { get; set; }
+}
+
+/// <summary>REST API of the catalog service. All responses are JSON.</summary>
 [ApiController]
 [Route("/")]
 public class CatalogController : ControllerBase
 {
     private readonly CatalogRepository _repo;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _config;
     private readonly ILogger<CatalogController> _logger;
 
-    public CatalogController(CatalogRepository repo, IHttpClientFactory hf, IConfiguration config, ILogger<CatalogController> logger)
+    public CatalogController(CatalogRepository repo, ILogger<CatalogController> logger)
     {
         _repo = repo;
-        _httpClientFactory = hf;
-        _config = config;
         _logger = logger;
     }
 
-    // GET /search/{topic}
+    /// <summary>GET /search/{topic} - query by subject. Returns [{id,title}], empty list if none.</summary>
     [HttpGet("search/{topic}")]
     public IActionResult Search(string topic)
     {
         var books = _repo.GetByTopic(topic);
-        if (books.Count == 0) return NotFound("No items found for the given topic.");
+        _logger.LogInformation("GET /search/{Topic} -> {Count} result(s)", topic, books.Count);
         return Ok(books.Select(b => new { id = b.Id, title = b.Title }));
     }
 
-    // GET /info/{id}
+    /// <summary>GET /info/{id} - query by item. 404 if the book does not exist.</summary>
     [HttpGet("info/{id:int}")]
     public IActionResult Info(int id)
     {
         var book = _repo.GetById(id);
-        if (book == null) return NotFound("Item not found.");
-        return Ok(book);
+        if (book == null)
+        {
+            _logger.LogWarning("GET /info/{Id} -> 404 not found", id);
+            return NotFound(new { message = $"Book {id} not found" });
+        }
+        _logger.LogInformation("GET /info/{Id} -> {Title} (qty {Qty}, price {Price})", id, book.Title, book.Quantity, book.Price);
+        return Ok(new { id = book.Id, title = book.Title, quantity = book.Quantity, price = book.Price, topic = book.Topic });
     }
 
-    // POST /update/{id}
-    public class UpdateRequest
-    {
-        public int? Quantity { get; set; }
-        public decimal? Price { get; set; }
-        public bool Internal { get; set; } = false;
-    }
-
+    /// <summary>
+    /// PUT or POST /update/{id} - change price and/or stock. "quantity" sets an absolute value,
+    /// "delta" adds/subtracts. The whole change is atomic and never allows negative stock.
+    /// </summary>
+    [HttpPut("update/{id:int}")]
     [HttpPost("update/{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateRequest req)
+    public IActionResult Update(int id, [FromBody] UpdateRequest req)
     {
-        var books = _repo.GetAll();
-        var book = books.FirstOrDefault(b => b.Id == id);
-        if (book == null) return NotFound("Item not found.");
+        if (req.Price == null && req.Quantity == null && req.Delta == null)
+            return BadRequest(new { message = "Provide at least one of: price, quantity, delta" });
+        if (req.Price is < 0)
+            return BadRequest(new { message = "price must not be negative" });
+        if (req.Quantity is < 0)
+            return BadRequest(new { message = "quantity must not be negative" });
 
-        if (req.Quantity.HasValue) book.Quantity = req.Quantity.Value;
-        if (req.Price.HasValue) book.Price = req.Price.Value;
-        _repo.SaveAll(books);
-
-        if (!req.Internal)
+        string? error = null;
+        var (found, changed, book) = _repo.Update(id, b =>
         {
-            var replicaName = _config["REPLICA"] == "catalog1" ? "catalog2" : "catalog1";
-            var replicaUrl = $"http://{replicaName}:4000/update/{id}";
-            try
+            // Compute the resulting stock first so nothing is modified if it would go negative.
+            int newQty = req.Quantity ?? b.Quantity;
+            if (req.Delta.HasValue) newQty += req.Delta.Value;
+            if (newQty < 0)
             {
-                var client = _httpClientFactory.CreateClient();
-                await client.PostAsJsonAsync(replicaUrl, new UpdateRequest
-                {
-                    Quantity = req.Quantity,
-                    Price = req.Price,
-                    Internal = true
-                });
-                _logger.LogInformation("Replicated update to {Replica}", replicaName);
+                error = $"Update would make stock negative (would be {newQty})";
+                return false;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("Replica sync failed: {Msg}", ex.Message);
-            }
+            b.Quantity = newQty;
+            if (req.Price.HasValue) b.Price = req.Price.Value;
+            return true;
+        });
+
+        if (!found)
+        {
+            _logger.LogWarning("UPDATE /update/{Id} -> 404 not found", id);
+            return NotFound(new { message = $"Book {id} not found" });
+        }
+        if (!changed)
+        {
+            _logger.LogWarning("UPDATE /update/{Id} rejected: {Error}", id, error);
+            return BadRequest(new { message = error });
         }
 
-        try
+        _logger.LogInformation("UPDATE /update/{Id} (price={Price}, quantity={Qty}, delta={Delta}) -> qty {NewQty}, price {NewPrice}",
+            id, req.Price, req.Quantity, req.Delta, book!.Quantity, book.Price);
+        return Ok(new { id = book.Id, title = book.Title, quantity = book.Quantity, price = book.Price, topic = book.Topic });
+    }
+
+    /// <summary>
+    /// POST /decrement/{id} - atomically reduce stock by one. Check and decrement happen under the
+    /// repository lock, so concurrent purchases can never oversell. 409 when out of stock.
+    /// </summary>
+    [HttpPost("decrement/{id:int}")]
+    public IActionResult Decrement(int id)
+    {
+        var (found, changed, book) = _repo.Update(id, b =>
         {
-            var client = _httpClientFactory.CreateClient();
-            await client.PostAsync($"http://frontend:5000/invalidate/{id}", null);
-            _logger.LogInformation("Cache for book {Id} invalidated on frontend.", id);
+            if (b.Quantity <= 0) return false;
+            b.Quantity -= 1;
+            return true;
+        });
+
+        if (!found)
+        {
+            _logger.LogWarning("POST /decrement/{Id} -> 404 not found", id);
+            return NotFound(new { message = $"Book {id} not found" });
         }
-        catch (Exception ex)
+        if (!changed)
         {
-            _logger.LogError("Failed to invalidate cache: {Msg}", ex.Message);
+            _logger.LogWarning("POST /decrement/{Id} -> 409 out of stock ({Title})", id, book!.Title);
+            return Conflict(new { message = "Book out of stock", id = book.Id, title = book.Title, quantity = book.Quantity });
         }
 
-        return Ok("Item updated successfully.");
+        _logger.LogInformation("POST /decrement/{Id} -> {Title}, remaining stock {Qty}", id, book!.Title, book.Quantity);
+        return Ok(new { id = book.Id, title = book.Title, quantity = book.Quantity, price = book.Price, topic = book.Topic });
     }
 }
