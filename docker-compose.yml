@@ -1,45 +1,31 @@
-
-
+# Bazar.com - exactly three containers: catalog, order, frontend.
 services:
-  catalog1:
+  catalog:
     build:
       context: ./src/CatalogService
-    container_name: catalog1
+    container_name: catalog
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - REPLICA=catalog1
+      - CatalogFilePath=/app/data/catalog.csv
     ports:
-      - "4001:4000"
+      - "4000:4000"
+    volumes:
+      - catalog-data:/app/data      # catalog.csv survives container restarts
     networks:
       - bazar-net
 
-  catalog2:
-    build:
-      context: ./src/CatalogService
-    container_name: catalog2
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - REPLICA=catalog2
-    ports:
-      - "4002:4000"
-    networks:
-      - bazar-net
-
-  order1:
+  order:
     build:
       context: ./src/OrderService
-    container_name: order1
+    container_name: order
+    environment:
+      - CATALOG_URL=http://catalog:4000
+      - OrdersFilePath=/app/data/orders.csv
     ports:
-      - "3001:3000"
-    networks:
-      - bazar-net
-
-  order2:
-    build:
-      context: ./src/OrderService
-    container_name: order2
-    ports:
-      - "3002:3000"
+      - "3000:3000"
+    volumes:
+      - order-data:/app/data        # orders.csv survives container restarts
+    depends_on:
+      - catalog
     networks:
       - bazar-net
 
@@ -47,15 +33,20 @@ services:
     build:
       context: ./src/FrontendService
     container_name: frontend
+    environment:
+      - CATALOG_URL=http://catalog:4000
+      - ORDER_URL=http://order:3000
     ports:
       - "5000:5000"
     depends_on:
-      - catalog1
-      - catalog2
-      - order1
-      - order2
+      - catalog
+      - order
     networks:
       - bazar-net
+
+volumes:
+  catalog-data:
+  order-data:
 
 networks:
   bazar-net:
