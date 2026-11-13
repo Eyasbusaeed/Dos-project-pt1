@@ -15,3 +15,8 @@ Thumbs.db
 
 # IDE
 .vscode/
+
+# Runtime data produced by the services (CSV files) and local data folders
+data/
+*.csv
+*.csv.tmp
