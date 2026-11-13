@@ -1,0 +1,452 @@
+﻿
+======================================================================
+  1. Search by topic
+======================================================================
+[16:42:26.699] GET http://localhost:5000/search/distributed systems
+  search failed (HTTP 404): {'message': '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /search/distributed%20systems</pre>\n</body>\n</html>\n'}
+[16:42:26.760] GET http://localhost:5000/search/undergraduate school
+  search failed (HTTP 404): {'message': '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /search/undergraduate%20school</pre>\n</body>\n</html>\n'}
+
+======================================================================
+  2. Info on every book
+======================================================================
+[16:42:26.774] GET http://localhost:5000/info/1
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/1</pre>
+</body>
+</html>
+
+
+[16:42:26.790] GET http://localhost:5000/info/2
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/2</pre>
+</body>
+</html>
+
+
+[16:42:26.806] GET http://localhost:5000/info/3
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/3</pre>
+</body>
+</html>
+
+
+[16:42:26.808] GET http://localhost:5000/info/4
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/4</pre>
+</body>
+</html>
+
+
+
+======================================================================
+  3. Purchases
+======================================================================
+[16:42:26.809] POST http://localhost:5000/purchase/2
+  purchase of item 2 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/2</pre>
+</body>
+</html>
+
+[16:42:26.811] POST http://localhost:5000/purchase/2
+  purchase of item 2 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/2</pre>
+</body>
+</html>
+
+[16:42:26.812] POST http://localhost:5000/purchase/3
+  purchase of item 3 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/3</pre>
+</body>
+</html>
+
+[16:42:26.813] GET http://localhost:5000/info/2
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/2</pre>
+</body>
+</html>
+
+
+[16:42:26.815] Purchasing an unknown item (expect 404):
+[16:42:26.815] POST http://localhost:5000/purchase/99
+  purchase of item 99 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/99</pre>
+</body>
+</html>
+
+
+======================================================================
+  4. Out-of-stock scenario
+======================================================================
+[16:42:30.888] ERROR: cannot reach http://localhost:4000/update/4: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+[16:42:30.888] Set stock of book 4 to 2 via catalog (was None, HTTP None)
+[16:42:30.888] POST http://localhost:5000/purchase/4
+  purchase of item 4 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/4</pre>
+</body>
+</html>
+
+[16:42:30.911] POST http://localhost:5000/purchase/4
+  purchase of item 4 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/4</pre>
+</body>
+</html>
+
+[16:42:30.926] POST http://localhost:5000/purchase/4
+  purchase of item 4 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/4</pre>
+</body>
+</html>
+
+[16:42:30.941] GET http://localhost:5000/info/4
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/4</pre>
+</body>
+</html>
+
+
+
+======================================================================
+  5. Restock
+======================================================================
+[16:42:30.943] PUT http://localhost:4000/update/4  delta=+5
+[16:42:35.032] ERROR: cannot reach http://localhost:4000/update/4: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+  restock failed (HTTP None): None
+
+[16:42:35.033] POST http://localhost:5000/purchase/4
+  purchase of item 4 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/4</pre>
+</body>
+</html>
+
+[16:42:35.049] GET http://localhost:5000/info/4
+  info failed (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /info/4</pre>
+</body>
+</html>
+
+
+
+======================================================================
+  6. Concurrent purchases (no overselling)
+======================================================================
+[16:42:39.180] ERROR: cannot reach http://localhost:4000/update/1: <urlopen error [WinError 10061] No connection could be made because the target machine actively refused it>
+[16:42:39.180] Stock of book 1 set to 5; launching 20 simultaneous purchases
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+  purchase of item 1 FAILED (HTTP 404): <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /purchase/1</pre>
+</body>
+</html>
+
+
+  requests sent    : 20
+  stock available  : 5
+  successful buys  : 0
+  failed (no stock): 20
+  final stock      : None
+  RESULT           : FAIL
+
