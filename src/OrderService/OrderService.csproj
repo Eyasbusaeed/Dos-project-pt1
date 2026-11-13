@@ -6,8 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.10" />
-  </ItemGroup>
+  <!-- No extra NuGet packages are needed: the ASP.NET Core shared framework is enough. -->
 
 </Project>

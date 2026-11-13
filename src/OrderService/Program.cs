@@ -1,5 +1,7 @@
 using OrderService.Data;
 
+// Order service: handles purchases. Talks to the catalog service over HTTP and keeps a
+// persistent order log. Listens on port 3000.
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
